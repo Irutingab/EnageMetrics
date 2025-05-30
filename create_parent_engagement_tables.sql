@@ -1,0 +1,20 @@
+CREATE TABLE parent_engagement (
+    Student_ID VARCHAR(10) PRIMARY KEY,
+    Student_Name VARCHAR(50),
+    Grade_Term1 FLOAT,
+    Grade_Term2 FLOAT,
+    Grade_Term3 FLOAT,
+    Logins_Term1 INT,
+    Logins_Term2 INT,
+    Logins_Term3 INT,
+    Messages_Term1 INT,
+    Messages_Term2 INT,
+    Messages_Term3 INT,
+    Attendance_Term1 FLOAT,
+    Attendance_Term2 FLOAT,
+    Attendance_Term3 FLOAT,
+    Total_Logins INT,
+    Total_Messages INT,
+    Avg_Grade FLOAT,
+    Avg_Attendance FLOAT
+);
