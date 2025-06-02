@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -48,13 +47,13 @@ def categorize_data(df):
     
     # Create attendance categories
     df['Attendance_Category'] = pd.cut(df['Attendance'], 
-                                     bins=[0, 70, 85, 100], 
-                                     labels=['Poor (≤70%)', 'Good (71-85%)', 'Excellent (>85%)'])
+                                    bins=[0, 70, 85, 100], 
+                                    labels=['Poor (≤70%)', 'Good (71-85%)', 'Excellent (>85%)'])
     
     # Create study hours categories
     df['Study_Hours_Category'] = pd.cut(df['Hours_Studied'], 
-                                       bins=[0, 10, 20, 50], 
-                                       labels=['Low (≤10h)', 'Medium (11-20h)', 'High (>20h)'])
+                                    bins=[0, 10, 20, 50], 
+                                    labels=['Low (≤10h)', 'Medium (11-20h)', 'High (>20h)'])
     
     return df
 
@@ -88,7 +87,7 @@ def create_donut_chart(df, column, title, colors=None):
     return fig
 
 def create_correlation_heatmap(df):
-    """Create correlation heatmap for numeric columns"""
+    """Create correlation heatmap for numeric columns using matplotlib only"""
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     if len(numeric_cols) < 2:
         return None
@@ -96,8 +95,26 @@ def create_correlation_heatmap(df):
     corr_matrix = df[numeric_cols].corr()
     
     fig, ax = plt.subplots(figsize=(12, 8))
-    sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap="RdBu_r", center=0,
-                square=True, ax=ax, cbar_kws={"shrink": .8})
+    
+    # Create heatmap using matplotlib
+    im = ax.imshow(corr_matrix, cmap='RdBu_r', aspect='auto', vmin=-1, vmax=1)
+    
+    # Add colorbar
+    cbar = plt.colorbar(im, ax=ax, shrink=0.8)
+    cbar.set_label('Correlation Coefficient')
+    
+    # Set ticks and labels
+    ax.set_xticks(range(len(corr_matrix.columns)))
+    ax.set_yticks(range(len(corr_matrix.columns)))
+    ax.set_xticklabels(corr_matrix.columns, rotation=45, ha='right')
+    ax.set_yticklabels(corr_matrix.columns)
+    
+    # Add correlation values as text
+    for i in range(len(corr_matrix.columns)):
+        for j in range(len(corr_matrix.columns)):
+            text = ax.text(j, i, f'{corr_matrix.iloc[i, j]:.2f}',
+                        ha="center", va="center", color="black", fontsize=8)
+    
     ax.set_title('Correlation Matrix: Student Performance Factors', fontsize=16, pad=20)
     plt.tight_layout()
     return fig
@@ -108,12 +125,12 @@ def create_histogram_with_kde(df, column, title, bins=20):
     
     # Create histogram
     n, bins, patches = ax.hist(df[column].dropna(), bins=bins, alpha=0.7, 
-                              color='skyblue', edgecolor='black')
+                            color='skyblue', edgecolor='black')
     
     # Add mean line
     mean_val = df[column].mean()
     ax.axvline(mean_val, color='red', linestyle='--', linewidth=2, 
-               label=f'Mean: {mean_val:.1f}')
+            label=f'Mean: {mean_val:.1f}')
     
     ax.set_title(title, fontsize=14, fontweight='bold')
     ax.set_xlabel(column)
@@ -196,6 +213,105 @@ def create_parental_involvement_analysis(df):
     ax4.set_xticks([1, 2, 3])
     ax4.set_xticklabels(['Low', 'Medium', 'High'])
     ax4.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    return fig
+
+def create_bar_chart_scores_by_involvement(df):
+    """Create bar chart showing average exam scores by parental involvement"""
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # Calculate mean scores by parental involvement
+    involvement_order = ['Low', 'Medium', 'High']
+    mean_scores = df.groupby('Parental_Involvement')['Exam_Score'].mean()
+    mean_scores = mean_scores.reindex(involvement_order)
+    
+    # Create bar chart
+    bars = ax.bar(involvement_order, mean_scores, 
+                color=['#FF6B6B', '#FFD700', '#90EE90'],
+                edgecolor='black', linewidth=1.2)
+    
+    # Add value labels on bars
+    for bar, value in zip(bars, mean_scores):
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5, 
+                f'{value:.1f}', ha='center', va='bottom', fontweight='bold', fontsize=12)
+    
+    ax.set_title('Average Exam Scores by Parental Involvement Level', fontsize=16, fontweight='bold', pad=20)
+    ax.set_xlabel('Parental Involvement Level', fontsize=12)
+    ax.set_ylabel('Average Exam Score', fontsize=12)
+    ax.grid(True, alpha=0.3, axis='y')
+    ax.set_ylim(0, max(mean_scores) * 1.1)
+    
+    plt.tight_layout()
+    return fig
+
+def create_scatter_attendance_vs_scores(df):
+    """Create scatter plot of Attendance vs Exam_Score colored by Parental_Involvement"""
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Define colors for each involvement level
+    colors = {'Low': '#FF6B6B', 'Medium': '#FFD700', 'High': '#90EE90'}
+    
+    # Create scatter plot for each involvement level
+    for involvement in ['Low', 'Medium', 'High']:
+        subset = df[df['Parental_Involvement'] == involvement]
+        ax.scatter(subset['Attendance'], subset['Exam_Score'], 
+                c=colors[involvement], label=f'{involvement} Involvement',
+                alpha=0.7, s=50, edgecolors='black', linewidth=0.5)
+    
+    # Add trend line for overall data
+    z = np.polyfit(df['Attendance'], df['Exam_Score'], 1)
+    p = np.poly1d(z)
+    ax.plot(df['Attendance'], p(df['Attendance']), "r--", alpha=0.8, linewidth=2, label='Trend Line')
+    
+    ax.set_title('Attendance vs Exam Score (by Parental Involvement)', fontsize=16, fontweight='bold', pad=20)
+    ax.set_xlabel('Attendance (%)', fontsize=12)
+    ax.set_ylabel('Exam Score', fontsize=12)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    return fig
+
+def create_box_plot_scores_by_education(df):
+    """Create box plot showing exam score distribution by parental education level"""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    
+    # Box plot by Parental Education Level
+    education_order = ['High School', 'College', 'Postgraduate']
+    education_data = [df[df['Parental_Education_Level'] == level]['Exam_Score'].values 
+                    for level in education_order if level in df['Parental_Education_Level'].values]
+    education_labels = [level for level in education_order if level in df['Parental_Education_Level'].values]
+    
+    if education_data:
+        box1 = ax1.boxplot(education_data, labels=education_labels, patch_artist=True)
+        colors1 = ['#FF6B6B', '#FFD700', '#90EE90']
+        for patch, color in zip(box1['boxes'], colors1[:len(box1['boxes'])]):
+            patch.set_facecolor(color)
+            patch.set_alpha(0.7)
+        
+        ax1.set_title('Exam Score Distribution by Parental Education Level', fontweight='bold')
+        ax1.set_xlabel('Parental Education Level')
+        ax1.set_ylabel('Exam Score')
+        ax1.grid(True, alpha=0.3)
+    
+    # Box plot by Family Income
+    income_order = ['Low', 'Medium', 'High']
+    income_data = [df[df['Family_Income'] == level]['Exam_Score'].values 
+                for level in income_order if level in df['Family_Income'].values]
+    income_labels = [level for level in income_order if level in df['Family_Income'].values]
+    
+    if income_data:
+        box2 = ax2.boxplot(income_data, labels=income_labels, patch_artist=True)
+        colors2 = ['#FF6B6B', '#FFD700', '#90EE90']
+        for patch, color in zip(box2['boxes'], colors2[:len(box2['boxes'])]):
+            patch.set_facecolor(color)
+            patch.set_alpha(0.7)
+        
+        ax2.set_title('Exam Score Distribution by Family Income', fontweight='bold')
+        ax2.set_xlabel('Family Income Level')
+        ax2.set_ylabel('Exam Score')
+        ax2.grid(True, alpha=0.3)
     
     plt.tight_layout()
     return fig
@@ -317,6 +433,25 @@ def main():
         )
         st.pyplot(hist_hours)
     
+    # New Advanced Visualizations Section
+    st.header("Advanced Performance Analysis")
+    
+    # Bar chart and scatter plot
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        bar_chart = create_bar_chart_scores_by_involvement(filtered_df)
+        st.pyplot(bar_chart)
+    
+    with col2:
+        scatter_plot = create_scatter_attendance_vs_scores(filtered_df)
+        st.pyplot(scatter_plot)
+    
+    # Box plots
+    st.subheader("Score Distribution by Demographics")
+    box_plots = create_box_plot_scores_by_education(filtered_df)
+    st.pyplot(box_plots)
+    
     # Correlation Analysis
     st.header("Correlation Analysis")
     corr_fig = create_correlation_heatmap(filtered_df)
@@ -422,7 +557,7 @@ def main():
         st.dataframe(summary_df)
     
     # Add new section after Correlation Analysis
-    st.header("🎯 Parental Involvement Impact Analysis")
+    st.header("Parental Involvement Impact Analysis")
     
     # Calculate correlation
     try:
@@ -464,7 +599,7 @@ def main():
             )
         
         # Interpretation
-        st.subheader("📊 What This Means")
+        st.subheader("What This Means")
         
         if correlation > 0.5:
             interpretation = "There is a **strong positive correlation** between parental involvement and student exam scores. Students with high parental involvement tend to perform significantly better."
