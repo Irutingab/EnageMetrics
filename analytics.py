@@ -33,7 +33,7 @@ class Analytics:
         insights['total_students'] = len(df)
         insights['avg_score'] = df['Exam_Score'].mean()
         insights['avg_attendance'] = df['Attendance'].mean()
-        insights['high_performers_pct'] = (df['Exam_Score'] >= 80).mean() * 100
+        insights['high_performers_pct'] = (df['Exam_Score'] >= 70).mean() * 100
         insights['high_involvement_pct'] = (df['Parental_Involvement'] == 'High').mean() * 100
         
         # Parental involvement impact
@@ -46,14 +46,13 @@ class Analytics:
             insights['low_involvement_mean'] = low_involvement
         
         # High performer traits
-        high_performers = df[df['Exam_Score'] >= 80]
+        high_performers = df[df['Exam_Score'] >= 70]
         if len(high_performers) > 0:
             insights['high_perf_traits'] = {
                 'High Parental Involvement': (high_performers['Parental_Involvement'] == 'High').mean() * 100,
                 'Excellent Attendance': (high_performers['Attendance'] > 85).mean() * 100,
                 'High Study Hours': (high_performers['Hours_Studied'] > 20).mean() * 100
             }
-        
         return insights
     
     @staticmethod
@@ -70,7 +69,7 @@ class Analytics:
         
         correlation_data = []
         for factor, corr in top_factors.items():
-            strength = "Strong" if corr > 0.5 else "Moderate" if corr > 0.3 else "Weak"
+            strength = "Strong" if corr > 0.3 else "Moderate" if corr > 0.1 else "Weak"
             correlation_data.append({
                 'factor': factor,
                 'correlation': corr,

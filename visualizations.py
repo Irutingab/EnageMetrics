@@ -3,11 +3,11 @@ import pandas as pd
 import numpy as np
 
 class Visualizations:
-    """Handles all visualization creation methods"""
     
     @staticmethod
     def create_donut_chart(df, column, title, colors=None):
-        """Create a professional pie chart using matplotlib"""
+        '''Creates a donut (pie) chart showing the distribution of values in 
+        a categorical column.'''
         value_counts = df[column].value_counts()
         
         if colors is None:
@@ -34,14 +34,14 @@ class Visualizations:
     
     @staticmethod
     def create_histogram_chart(df, column, title, colors=None, bins=None):
-        """Create a histogram for categorical or numerical data"""
+        """Plots a histogram for numerical data or a bar chart for categorical data."""
         fig, ax = plt.subplots(figsize=(10, 6))
         
         if df[column].dtype == 'object' or pd.api.types.is_categorical_dtype(df[column]):
             # For categorical data, create a bar chart
             value_counts = df[column].value_counts()
             bars = ax.bar(range(len(value_counts)), value_counts.values, 
-                         color=colors[:len(value_counts)] if colors else None)
+                        color=colors[:len(value_counts)] if colors else None)
             ax.set_xticks(range(len(value_counts)))
             ax.set_xticklabels(value_counts.index, rotation=45, ha='right')
             ax.set_ylabel('Count')
@@ -49,12 +49,12 @@ class Visualizations:
             # Add value labels on bars
             for bar, value in zip(bars, value_counts.values):
                 ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5, 
-                       str(value), ha='center', va='bottom', fontweight='bold')
+                    str(value), ha='center', va='bottom', fontweight='bold')
         else:
             # For numerical data, create a histogram
             n, bins, patches = ax.hist(df[column].dropna(), bins=bins or 20, 
-                                     color=colors[0] if colors else 'skyblue', 
-                                     alpha=0.7, edgecolor='black')
+                                    color=colors[0] if colors else 'skyblue', 
+                                    alpha=0.7, edgecolor='black')
             ax.set_xlabel(column)
             ax.set_ylabel('Frequency')
         
@@ -65,7 +65,8 @@ class Visualizations:
     
     @staticmethod
     def create_histogram_with_kde(df, column, title, bins=20):
-        """Create histogram without KDE overlay"""
+        """Plots a histogram for a numerical column 
+        and overlays a vertical line for the mean."""
         fig, ax = plt.subplots(figsize=(10, 6))
         
         n, bins, patches = ax.hist(df[column].dropna(), bins=bins, alpha=0.7, 
@@ -85,16 +86,15 @@ class Visualizations:
     
     @staticmethod
     def create_correlation_heatmap(df):
-        """Create correlation heatmap for numeric columns using matplotlib only"""
+        """Plots a heatmap of the correlation matrix for all numeric columns."""
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) < 2:
             return None
         
         corr_matrix = df[numeric_cols].corr()
-        
         fig, ax = plt.subplots(figsize=(12, 8))
         
-        im = ax.imshow(corr_matrix, cmap='RdBu_r', aspect='auto', vmin=-1, vmax=1)
+        im = ax.imshow(corr_matrix, aspect='auto', vmin=-1, vmax=1)
         
         cbar = plt.colorbar(im, ax=ax, shrink=0.8)
         cbar.set_label('Correlation Coefficient')
@@ -123,7 +123,7 @@ class Visualizations:
         mean_scores = mean_scores.reindex(involvement_order)
         
         bars = ax.bar(involvement_order, mean_scores, 
-                    color=['#FF6B6B', '#FFD700', '#90EE90'],
+                    color=["#0D056A", "#484564", "#090D4F"],
                     edgecolor='black', linewidth=1.2)
         
         for bar, value in zip(bars, mean_scores):
@@ -135,7 +135,7 @@ class Visualizations:
         ax.set_ylabel('Average Exam Score', fontsize=12)
         ax.grid(True, alpha=0.3, axis='y')
         ax.set_ylim(0, max(mean_scores) * 1.1)
-        
+                
         plt.tight_layout()
         return fig
     
@@ -144,7 +144,7 @@ class Visualizations:
         """Create scatter plot of Attendance vs Exam_Score colored by Parental_Involvement"""
         fig, ax = plt.subplots(figsize=(12, 8))
         
-        colors = {'Low': '#FF6B6B', 'Medium': '#FFD700', 'High': '#90EE90'}
+        colors = {'Low': "#25203A", 'Medium': "#3E0EE9", 'High': "#1E1276"}
         
         for involvement in ['Low', 'Medium', 'High']:
             subset = df[df['Parental_Involvement'] == involvement]
@@ -177,7 +177,7 @@ class Visualizations:
         
         if education_data:
             box1 = ax1.boxplot(education_data, labels=education_labels, patch_artist=True)
-            colors1 = ['#FF6B6B', '#FFD700', '#90EE90']
+            colors1 = ["#3C14A3", "#0F0B97", "#1B053A"]
             for patch, color in zip(box1['boxes'], colors1[:len(box1['boxes'])]):
                 patch.set_facecolor(color)
                 patch.set_alpha(0.7)
@@ -194,7 +194,7 @@ class Visualizations:
         
         if income_data:
             box2 = ax2.boxplot(income_data, labels=income_labels, patch_artist=True)
-            colors2 = ['#FF6B6B', '#FFD700', '#90EE90']
+            colors2 = ["#7A6BFF", "#061441", "#746D7A"]
             for patch, color in zip(box2['boxes'], colors2[:len(box2['boxes'])]):
                 patch.set_facecolor(color)
                 patch.set_alpha(0.7)
@@ -225,7 +225,7 @@ class Visualizations:
         ax1.grid(True, alpha=0.3)
         
         mean_scores = df.groupby('Parental_Involvement')['Exam_Score'].mean().reindex(involvement_order)
-        bars = ax2.bar(involvement_order, mean_scores, color=['#FF6B6B', '#FFD700', '#90EE90'])
+        bars = ax2.bar(involvement_order, mean_scores, color=["#12042B", "#9A99AA", "#060673"])
         ax2.set_title('Average Exam Scores by Parental Involvement', fontweight='bold')
         ax2.set_xlabel('Parental Involvement Level')
         ax2.set_ylabel('Average Exam Score')
@@ -236,7 +236,7 @@ class Visualizations:
         
         performance_by_involvement = pd.crosstab(df['Parental_Involvement'], df['Performance_Category'], normalize='index') * 100
         performance_by_involvement.plot(kind='bar', ax=ax3, stacked=True, 
-                                       color=['#FF6B6B', '#FFA07A', '#FFD700', '#98FB98', '#90EE90'])
+                                    color=["#05000B", "#0F06BC", "#84838A", "#4E4D56", "#2D04B4"])
         ax3.set_title('Performance Distribution by Parental Involvement (%)', fontweight='bold')
         ax3.set_xlabel('Parental Involvement Level')
         ax3.set_ylabel('Percentage')
@@ -244,7 +244,7 @@ class Visualizations:
         ax3.tick_params(axis='x', rotation=45)
         
         involvement_numeric = df['Parental_Involvement'].map({'Low': 1, 'Medium': 2, 'High': 3})
-        ax4.scatter(involvement_numeric, df['Exam_Score'], alpha=0.6, color='#45B7D1')
+        ax4.scatter(involvement_numeric, df['Exam_Score'], alpha=0.6, color="#116274")
         
         z = np.polyfit(involvement_numeric, df['Exam_Score'], 1)
         p = np.poly1d(z)

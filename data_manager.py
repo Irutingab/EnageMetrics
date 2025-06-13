@@ -2,7 +2,6 @@ import pandas as pd
 import streamlit as st
 
 class DataManager:
-    """Handles data loading, caching, and preprocessing operations"""
     
     def __init__(self, filename="student_performance_cleaned.csv"):
         self.filename = filename
@@ -10,15 +9,15 @@ class DataManager:
     
     @st.cache_data
     def load_data(_self):
-        """Load and cache the student performance data"""
         try:
             df = pd.read_csv(_self.filename)
             return df
         except FileNotFoundError:
-            st.error(f"Dataset '{_self.filename}' not found. Please ensure the file is in the correct directory.")
+            st.error(f"Dataset '{_self.filename}' not found.")
             return None
     
     def categorize_data(self, df):
+        
         """Create categories for better visualization"""
         # Create performance categories based on Exam_Score
         df['Performance_Category'] = pd.cut(df['Exam_Score'], 
@@ -38,7 +37,7 @@ class DataManager:
         return df
     
     def get_processed_data(self):
-        """Get fully processed data with categories"""
+        
         if self.df is None:
             self.df = self.load_data()
             if self.df is not None:
@@ -46,7 +45,6 @@ class DataManager:
         return self.df
     
     def apply_filters(self, df, selected_involvement, selected_schools):
-        """Apply sidebar filters to the dataset"""
         return df[
             (df['Parental_Involvement'].isin(selected_involvement)) &
             (df['School_Type'].isin(selected_schools))
