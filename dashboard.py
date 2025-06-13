@@ -47,7 +47,6 @@ class StudentDashboard:
         # Handle mixed data types that cause Arrow issues
         for col in df_clean.columns:
             if df_clean[col].dtype == 'object':
-                # Try to convert to numeric if possible
                 try:
                     # Check if all non-null values can be converted to numeric
                     non_null_vals = df_clean[col].dropna()
@@ -236,7 +235,6 @@ class StudentDashboard:
         
         # Clean data before correlation analysis
         filtered_df = self.clean_dataframe_for_streamlit(filtered_df)
-        
         try:
             corr_fig = self.visualizations.create_correlation_heatmap(filtered_df)
             
@@ -347,7 +345,7 @@ class StudentDashboard:
                 )
             
             # Detailed analysis charts
-            st.subheader("📈 Detailed Analysis")
+            st.subheader("Detailed Analysis")
             try:
                 involvement_analysis_fig = self.visualizations.create_parental_involvement_analysis(filtered_df)
                 st.pyplot(involvement_analysis_fig)
